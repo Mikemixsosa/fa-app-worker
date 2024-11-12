@@ -112,3 +112,13 @@ enabled = true
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+
+
+# Bind a D1 database. D1 is Cloudflare’s native serverless SQL database.
+# Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases
+[[d1_databases]]
+binding = "fa-db"
+database_name = "financial-advisor"
+database_id = "95ee8ded-4baa-49c8-ba9b-b8fef98d6ed2"
+
+[vars]
