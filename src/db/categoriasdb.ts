@@ -32,3 +32,52 @@ export async function createCategory(db: D1Database, nombre: string, tipo: strin
 
   return newCategory;
 }
+
+export async function updateCategory(
+  db: D1Database,
+  id: string,
+  usuario_id: string,
+  nombre?: string,
+  tipo?: string
+): Promise<Category> {
+  // Construimos el query dinámicamente según los campos proporcionados
+  let query = 'UPDATE categorias SET ';
+  const params: (string | undefined)[] = [];
+
+  if (nombre) {
+    query += 'nombre = ?, ';
+    params.push(nombre);
+  }
+  if (tipo) {
+    query += 'tipo = ?, ';
+    params.push(tipo);
+  }
+
+  // Quitamos la última coma y espacio, y agregamos la condición para el ID y el usuario_id
+  query = query.slice(0, -2) + ' WHERE id = ? AND usuario_id = ?';
+  params.push(id, usuario_id);
+
+  // Ejecutamos la actualización
+  await db.prepare(query).bind(...params).run();
+
+  // Recuperamos la categoría actualizada para devolverla
+  const updatedCategory = await db
+    .prepare('SELECT * FROM categorias WHERE id = ? AND usuario_id = ?')
+    .bind(id, usuario_id)
+    .first<Category>();
+
+  if (!updatedCategory) {
+    throw new Error('Error al obtener la categoría actualizada');
+  }
+
+  return updatedCategory;
+}
+
+
+export async function deleteCategory(db: D1Database, id: string, usuario_id: string): Promise<void> {
+  // Ejecutamos la eliminación en la base de datos con la condición de usuario_id
+  await db.prepare('DELETE FROM categorias WHERE id = ? AND usuario_id = ?')
+    .bind(id, usuario_id)
+    .run();
+}
+

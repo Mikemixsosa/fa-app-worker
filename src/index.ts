@@ -1,7 +1,7 @@
 // /src/index.ts
 import { Env } from './types/types';
 import { handleRegister, handleLogin } from './controllers/authController';
-import { GET as getCategories, POST as createCategory } from './controllers/categoriasController';
+import { GET as getCategories, POST as createCategory, PUT as updateCategory, DELETE as deleteCategory } from './controllers/categoriasController';
 import { GET as getTransacciones, POST as createTransaccion, PUT as updateTransaccion, DELETE as deleteTransaccion } from './controllers/transaccionesController';
 
 // Función para agregar encabezados CORS
@@ -48,10 +48,17 @@ export default {
           case 'POST':
             response = await createCategory(request, env);
             return handleCors(response);
+          case 'PUT':
+            response = await updateCategory(request, env);
+            return handleCors(response);
+          case 'DELETE':
+            response = await deleteCategory(request, env);
+            return handleCors(response);
           default:
             response = new Response(JSON.stringify({ error: 'Método no permitido' }), { status: 405 });
             return handleCors(response);
         }
+
 
       // Rutas de transacciones
       case '/transacciones':

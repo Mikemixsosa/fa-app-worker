@@ -21,5 +21,6 @@ export interface Transaccion {
   fecha?: string; // Opcional, el valor por defecto es la fecha actual
   tipo: string;
   categoria_id: number;
+  categoria?: string; // Nombre de la categoría, opcional y asignado en el backend
   usuario_id: number;
 }

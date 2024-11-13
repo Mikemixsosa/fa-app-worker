@@ -41,14 +41,30 @@ export async function createTransaccion(env: Env, transaccion: Transaccion): Pro
   
 
 // Obtener transacciones por usuario
+// Obtener transacciones por usuario con el nombre de la categoría
 export async function getTransaccionesByUserId(env: Env, usuario_id: number): Promise<Transaccion[]> {
   const query = `
-    SELECT * FROM transacciones
-    WHERE usuario_id = ?
+    SELECT 
+      transacciones.id,
+      transacciones.descripcion,
+      transacciones.monto,
+      transacciones.fecha,
+      transacciones.tipo,
+      transacciones.categoria_id,
+      categorias.nombre AS categoria,  -- Obtiene el nombre de la categoría
+      transacciones.usuario_id
+    FROM 
+      transacciones
+    JOIN 
+      categorias ON transacciones.categoria_id = categorias.id
+    WHERE 
+      transacciones.usuario_id = ?
   `;
+
   const result = await env['fa-db'].prepare(query).bind(usuario_id).all<Transaccion>();
   return result.results || [];
 }
+
 
 // Obtener una transacción específica por ID y usuario
 export async function getTransaccionById(env: Env, id: number, usuario_id: number): Promise<Transaccion | null> {
