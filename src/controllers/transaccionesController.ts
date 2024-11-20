@@ -11,6 +11,7 @@ import {
 import { Transaccion } from '../types/types';
 
 // Crear una transacción
+// Crear una transacción
 export async function POST(request: Request, env: Env): Promise<Response> {
     try {
         const authHeader = request.headers.get('Authorization');
@@ -39,13 +40,28 @@ export async function POST(request: Request, env: Env): Promise<Response> {
             return new Response(JSON.stringify({ error: 'Todos los campos son requeridos: descripcion, monto, tipo, categoria_id, usuario_id' }), { status: 400 });
         }
 
-        const nuevaTransaccion = await createTransaccion(env, { descripcion, monto, tipo, categoria_id, usuario_id });
-        return new Response(JSON.stringify(nuevaTransaccion), { status: 201 });
+        // Validación específica para 'tipo'
+        if (tipo !== 'Ingreso' && tipo !== 'Gasto') {
+            return new Response(JSON.stringify({ error: 'El campo tipo debe ser "Ingreso" o "Gasto"' }), { status: 400 });
+        }
+
+        const nuevaTransaccion: Transaccion = {
+            descripcion,
+            monto,
+            tipo: tipo as 'Ingreso' | 'Gasto', // Tipo restringido
+            categoria_id,
+            usuario_id
+        };
+
+        const transaccionGuardada = await createTransaccion(env, nuevaTransaccion);
+        return new Response(JSON.stringify(transaccionGuardada), { status: 201 });
     } catch (error) {
         console.error('Error al crear transacción:', error);
         return new Response(JSON.stringify({ error: 'Error al crear transacción' }), { status: 500 });
     }
 }
+
+
 
 
 
@@ -79,17 +95,28 @@ export async function PUT(request: Request, env: Env): Promise<Response> {
 
         const token = authHeader.split(' ')[1];
         const usuario_id = await verifyJWT(token, env.JWT_SECRET2);
-        if (!usuario_id) return new Response(JSON.stringify({ error: 'Token inválido o expirado' }), { status: 401 });
+        if (!usuario_id) {
+            return new Response(JSON.stringify({ error: 'Token inválido o expirado' }), { status: 401 });
+        }
 
         const { id, descripcion, monto, tipo, categoria_id } = await request.json();
+
+        // Verificación para que `tipo` solo acepte 'Ingreso' o 'Gasto'
+        if (tipo && tipo !== 'Ingreso' && tipo !== 'Gasto') {
+            return new Response(JSON.stringify({ error: 'El campo tipo debe ser "Ingreso" o "Gasto"' }), { status: 400 });
+        }
+
         const success = await updateTransaccion(env, id, usuario_id, { descripcion, monto, tipo, categoria_id });
-        return success ? new Response(JSON.stringify({ message: 'Transacción actualizada' }), { status: 200 }) :
-            new Response(JSON.stringify({ error: 'Error al actualizar transacción' }), { status: 500 });
+        
+        return success 
+            ? new Response(JSON.stringify({ message: 'Transacción actualizada' }), { status: 200 })
+            : new Response(JSON.stringify({ error: 'Error al actualizar transacción' }), { status: 500 });
     } catch (error) {
         console.error('Error al actualizar transacción:', error);
         return new Response(JSON.stringify({ error: 'Error al actualizar transacción' }), { status: 500 });
     }
 }
+
 
 // Eliminar una transacción
 export async function DELETE(request: Request, env: Env): Promise<Response> {
